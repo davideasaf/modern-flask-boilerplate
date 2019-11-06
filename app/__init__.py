@@ -13,7 +13,15 @@ from app.schemas import UserSchema, UserSchemaWithPassword
 
 db = SQLAlchemy()
 guard = Praetorian()
-api = Api(title="PyData Flask API", version="0.1.0", prefix="/api", doc="/api")
+
+authorizations = {"jwt": {"type": "apiKey", "in": "header", "name": "Authorization"}}
+api = Api(
+    title="PyData Flask API",
+    version="0.1.0",
+    prefix="/api",
+    doc="/api",
+    authorizations=authorizations,
+)
 
 
 def create_app(config_name: str) -> Flask:
@@ -48,11 +56,13 @@ def create_app(config_name: str) -> Flask:
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, User)
 
+    # Because this route is not using flask-restplus, it will not show up in Swagger
     @app.route("/")
     def hello_world() -> str:  # pylint: disable=unused-variable
 
         return "Hello World!"
 
+    # Because this route is not using flask-restplus, it will not show up in Swagger
     @app.route("/login", methods=["POST"])
     def login():
         # Ignore the mimetype and always try to parse JSON.
@@ -67,6 +77,7 @@ def create_app(config_name: str) -> Flask:
 
     # !!!!!!!ALERT!!!!!!!
     # This does not work. The users are a SQLAlchemy model that must be converted.
+    # Because this route is not using flask-restplus, it will not show up in Swagger
     @app.route("/uhoh", methods=["GET"])
     @auth_required
     def uh_oh():
@@ -75,7 +86,9 @@ def create_app(config_name: str) -> Flask:
         print(users)
         return jsonify(users)
 
-    # This works because Marshmallow is used to dump Python serialized object
+    # This works because Marshmallow is used to dump a Python serialized
+    # object (SQLAlchemy Model)
+    # Because this route is not using flask-restplus, it will not show up in Swagger
     @app.route("/marsh", methods=["GET"])
     @auth_required
     def marsh():
@@ -84,7 +97,10 @@ def create_app(config_name: str) -> Flask:
 
         return jsonify(UserSchema(many=True).dump(users))
 
+    # This route demonstrates how you add a route directly to the flask-restplus api.
+    # This will appear in Swagger docs
     @api.route("/restplus-no-namespace/user")
+    @user_api.doc(security="jwt")
     class UserResource(Resource):
         @roles_required("admin")
         def get(self):

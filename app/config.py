@@ -15,6 +15,7 @@ class Config:
     SECRET_KEY: str = "top secret"
     JWT_ACCESS_LIFESPAN: Dict[str, int] = {"hours": 24}
     JWT_REFRESH_LIFESPAN: Dict[str, int] = {"days": 30}
+    RESTPLUS_MASK_SWAGGER: bool = False
 
 
 class TestingConfig(Config):
