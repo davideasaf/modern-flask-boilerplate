@@ -34,8 +34,8 @@ def create_app(config_name: str) -> Flask:
         [Flask]: Flask Application
     """
     from app.config import config_by_name
-    from app.models import User
-    from app.controllers import user_api
+    from app.models import User, Iris
+    from app.controllers import user_api, iris_api
 
     # Create the app
     app = Flask(__name__)
@@ -52,6 +52,7 @@ def create_app(config_name: str) -> Flask:
     # Initialize Rest+ API
     api.init_app(app)
     api.add_namespace(user_api, path="/user")
+    api.add_namespace(iris_api, path="/iris")
 
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, User)

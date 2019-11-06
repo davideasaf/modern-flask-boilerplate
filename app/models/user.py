@@ -37,3 +37,6 @@ class User(db.Model):
 
     def is_valid(self):
         return self.is_active
+
+    def __repr__(self):
+        return f"<User {self.user_id} - {self.username}>"
