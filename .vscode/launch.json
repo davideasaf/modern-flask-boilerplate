@@ -12,7 +12,7 @@
       "env": {
         "FLASK_APP": "app:create_app('dev')",
         "FLASK_ENV": "development",
-        "FLASK_DEBUG": "0"
+        "FLASK_DEBUG": "0",
       },
       "args": ["run", "--no-debugger", "--no-reload"],
       "jinja": false
