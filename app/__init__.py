@@ -27,6 +27,7 @@ def create_app(config_name: str) -> Flask:
     """
     from app.config import config_by_name
     from app.models import User
+    from app.controllers import user_api
 
     # Create the app
     app = Flask(__name__)
@@ -42,6 +43,7 @@ def create_app(config_name: str) -> Flask:
 
     # Initialize Rest+ API
     api.init_app(app)
+    api.add_namespace(user_api, path="/user")
 
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, User)
@@ -82,7 +84,7 @@ def create_app(config_name: str) -> Flask:
 
         return jsonify(UserSchema(many=True).dump(users))
 
-    @api.route("/restplus/user")
+    @api.route("/restplus-no-namespace/user")
     class UserResource(Resource):
         @roles_required("admin")
         def get(self):
@@ -90,45 +92,5 @@ def create_app(config_name: str) -> Flask:
             users = User.query.all()
 
             return jsonify(UserSchema(many=True).dump(users))
-
-    #
-    # REST + Examples
-    #
-
-    # Create a namespace and attach to main API
-    user_api = Namespace("User", description="User Resources")
-    api.add_namespace(user_api, path="/user")
-
-    # Attach routes to namespace
-    @user_api.route("")
-    class UserResourceNamespace(Resource):
-        @roles_required("admin")
-        def get(self):
-
-            users = User.query.all()
-
-            return jsonify(UserSchema(many=True).dump(users))
-
-    @user_api.route("/<int:user_id>")
-    class UserIdResourceNamespace(Resource):
-        @roles_required("admin")
-        def get(self, user_id: int):
-
-            user = User.query.get(user_id)
-            if not user:
-                abort(404, "User was not found")
-
-            return jsonify(UserSchema().dump(user))
-
-    # With flask-accepts, you no longer have to manually dump on the return statement.
-    # You can define all the request and response expectations on the route itself.
-    @user_api.route("/flask-accepts-users")
-    class UserResourceFlaskAccepts(Resource):
-        @responds(schema=UserSchema, api=api, many=True)
-        @roles_required("admin")
-        def get(self):
-            users = User.query.all()
-
-            return users
 
     return app
