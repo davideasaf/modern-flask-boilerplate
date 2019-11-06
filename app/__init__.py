@@ -8,6 +8,8 @@ from flask_accepts import accepts, responds
 from flask_praetorian import Praetorian, auth_required, roles_required
 from flask_restplus import Api, Resource, Namespace
 from flask_sqlalchemy import SQLAlchemy
+from app.schemas import UserSchema, UserSchemaWithPassword
+
 
 db = SQLAlchemy()
 guard = Praetorian()
@@ -75,7 +77,6 @@ def create_app(config_name: str) -> Flask:
     @app.route("/marsh", methods=["GET"])
     @auth_required
     def marsh():
-        from app.schemas import UserSchema, UserSchemaWithPassword
 
         users = User.query.all()
 
@@ -85,7 +86,6 @@ def create_app(config_name: str) -> Flask:
     class UserResource(Resource):
         @roles_required("admin")
         def get(self):
-            from app.schemas import UserSchema, UserSchemaWithPassword
 
             users = User.query.all()
 
@@ -104,7 +104,6 @@ def create_app(config_name: str) -> Flask:
     class UserResourceNamespace(Resource):
         @roles_required("admin")
         def get(self):
-            from app.schemas import UserSchema, UserSchemaWithPassword
 
             users = User.query.all()
 
@@ -114,12 +113,22 @@ def create_app(config_name: str) -> Flask:
     class UserIdResourceNamespace(Resource):
         @roles_required("admin")
         def get(self, user_id: int):
-            from app.schemas import UserSchema, UserSchemaWithPassword
 
             user = User.query.get(user_id)
             if not user:
                 abort(404, "User was not found")
 
             return jsonify(UserSchema().dump(user))
+
+    # With flask-accepts, you no longer have to manually dump on the return statement.
+    # You can define all the request and response expectations on the route itself.
+    @user_api.route("/flask-accepts-users")
+    class UserResourceFlaskAccepts(Resource):
+        @responds(schema=UserSchema, api=api, many=True)
+        @roles_required("admin")
+        def get(self):
+            users = User.query.all()
+
+            return users
 
     return app
