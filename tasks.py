@@ -2,6 +2,8 @@
 import os
 from invoke import task
 
+HEROKU_APP_NAME = "pydata-effortless-rest-flask"
+
 
 def get_db_url(ctx) -> str:
     """Get db url with local heroku setup
@@ -13,7 +15,7 @@ def get_db_url(ctx) -> str:
         str: connection string for db
     """
     return ctx.run(
-        "heroku config:get DATABASE_URL -a pydata-effortless-rest-flask"
+        f"heroku config:get DATABASE_URL -a {HEROKU_APP_NAME}"
     ).stdout.strip()
 
 
